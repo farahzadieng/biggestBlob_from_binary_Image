@@ -6,4 +6,4 @@
 * finds biggest blob and removes other small blobs 
 
 ## Todo 
-[ ] when two feets are sepreated , only one of them is returned. there must be a checker for the biggest blob ratio to the second blob
+[] when two feets are sepreated , only one of them is returned. there must be a checker for the biggest blob ratio to the second blob
