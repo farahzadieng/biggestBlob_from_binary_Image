@@ -1,3 +1,15 @@
+'''
+VERSION : 1.0
+UPDATE : 1 SEPTEMBER 2023 
+STAGE : POST-PROCESS 
+PHASE : Pelvic Segmentation
+INFO : Convert model generated body mask to applicable mask 
+TASKS : rounds values to 0 and 1 - detects biggest blob on each slice - saves the biggest blob - removes holes
+BUG : on leg slices , only one leg is masked 
+INPUT CONDITIONS :  1) input array order must be at [number of slices , rows , columns]
+                    2) input array values must be between 0 and 1 
+                    3) input of the training set must be based on model 4 pre process data
+'''
 import numpy as np 
 from skimage import measure
 from scipy import ndimage
@@ -6,32 +18,23 @@ import sys
 from matplotlib import pyplot as plt
 
 # USER INPUTS 
-Input_NPY_Folder = "E:\\Dataset\\ct-body-mask-withCode\\store_all\\temp\\machine_generated"
+Input_NPY_Folder = "E:\\Dataset\\ct-body-mask-withCode\\store_all\\t\\Result"
 
-Output_Folder = "E:\\Dataset\\ct-body-mask-withCode\\store_all\\temp\\postproccessed"
+Output_Folder = "E:\\Dataset\\ct-body-mask-withCode\\store_all\\t\\Result\\post_process_version"
 
 if not(os.path.isdir(Output_Folder)) : os.mkdir(Output_Folder)
 
-
-fill = '#' 
-empty = '-'
-
 fileNames = os.listdir(Input_NPY_Folder)
 
-counter = 0
 for file in fileNames : 
-    percent = counter / len(fileNames)
-    counter += 1
-    filled = int(20 * percent)
-    bar = fill * filled + empty * (20 - filled)
-    sys.stdout.write(f'\rProgress : |{bar}| {percent * 100:.1f}%')
-    
+    print('Proccessing file: ' + file)
     image = np.load(os.path.join(Input_NPY_Folder,file))
     image_copy = image.copy()
     # for index in range(image.shape[2]):
     for index in range(image.shape[0]):
         # label_image = measure.label(image[:,:,index], connectivity=1)
-        label_image = measure.label(np.round((image[index,:,:] + 1) / 2), connectivity=1)
+        # label_image = measure.label(np.round((image[index,:,:] + 1) / 2), connectivity=1)
+        label_image = measure.label(np.round(image[index,:,:]), connectivity=1)
         num_blobs = np.max(label_image)
         regions = measure.regionprops(label_image)
         try:
@@ -48,5 +51,5 @@ for file in fileNames :
         image_copy[index,:,:] = biggest_blob
     # np.save(image_copy, os.path.join(Output_Folder, file))
     np.save(os.path.join(Output_Folder, file), image_copy)
-    sys.stdout.flush()
+    del image
         
